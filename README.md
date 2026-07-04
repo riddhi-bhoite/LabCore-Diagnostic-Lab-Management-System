@@ -140,6 +140,9 @@ The database follows a normalized relational design to ensure data integrity, re
 
 ![Patient Dashboard](screenshots/patient-dashboard.png)
 
+## Booking Appointment
+![Booking Appointment](screenshots/book-appointment.jpeg)
+
 ---
 
 ## Doctor Dashboard
