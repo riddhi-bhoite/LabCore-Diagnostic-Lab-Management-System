@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>LabCore — Admin Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--navy:#0d1e35;--blue:#1a3a6b;--accent:#3b82f6;--gold:#f0a500;--surface:#f0f4fb;--white:#fff;--muted:#94a3b8;--border:#dde3ef;--ink:#0f172a;--ok:#16a34a;--err:#dc2626;--warn:#d97706;--purple:#7c3aed}
+    body{font-family:'Sora',sans-serif;background:var(--surface);color:var(--ink);min-height:100vh;display:flex;flex-direction:column}
+    /* NAV */
+    nav{background:var(--navy);display:flex;align-items:center;justify-content:space-between;padding:0 2rem;height:62px;position:sticky;top:0;z-index:200;box-shadow:0 2px 16px rgba(0,0,0,.3)}
+    .brand{display:flex;align-items:center;gap:.7rem;text-decoration:none}
+    .brand-mark{width:38px;height:38px;background:linear-gradient(135deg,var(--gold),#f97316);border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:1.15rem}
+    .brand-name{font-family:'Playfair Display',serif;font-size:1.4rem;color:#fff}.brand-name b{color:var(--gold)}
+    .nav-links{display:flex;gap:.25rem}
+    .nav-link{padding:.45rem .9rem;border-radius:8px;color:rgba(255,255,255,.65);font-size:.83rem;font-weight:500;text-decoration:none;transition:all .2s}
+    .nav-link:hover,.nav-link.active{background:rgba(255,255,255,.12);color:#fff}
+    .nav-right{display:flex;align-items:center;gap:1rem}
+    .admin-badge{background:rgba(240,165,0,.2);border:1px solid rgba(240,165,0,.4);color:var(--gold-lit,#fbbf24);font-size:.75rem;font-weight:700;padding:.25rem .75rem;border-radius:50px}
+    .btn-logout{padding:.38rem .9rem;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:8px;font-family:'Sora',sans-serif;font-size:.8rem;cursor:pointer;transition:background .2s}
+    .btn-logout:hover{background:rgba(255,255,255,.2)}
+    /* LAYOUT */
+    .main{flex:1;max-width:1200px;width:100%;margin:0 auto;padding:2rem 1.5rem}
+    .page-head{margin-bottom:2rem;animation:fadeUp .5s ease both}
+    .page-head h1{font-family:'Playfair Display',serif;font-size:2rem;margin-bottom:.25rem}
+    .page-head p{color:var(--muted);font-size:.9rem}
+    /* STATS */
+    .stats-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:1rem;margin-bottom:2rem}
+    .stat-card{background:var(--white);border-radius:16px;padding:1.3rem 1.4rem;box-shadow:0 2px 12px rgba(15,23,42,.06);border-top:3px solid transparent;transition:transform .2s;animation:fadeUp .6s ease both}
+    .stat-card:hover{transform:translateY(-3px)}
+    .stat-card:nth-child(1){border-color:var(--accent);animation-delay:.05s}
+    .stat-card:nth-child(2){border-color:var(--ok);animation-delay:.1s}
+    .stat-card:nth-child(3){border-color:var(--gold);animation-delay:.15s}
+    .stat-card:nth-child(4){border-color:var(--purple);animation-delay:.2s}
+    .stat-card:nth-child(5){border-color:var(--err);animation-delay:.25s}
+    .stat-label{font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:.4rem}
+    .stat-num{font-family:'Playfair Display',serif;font-size:2rem;color:var(--ink);line-height:1}
+    .stat-sub{font-size:.75rem;color:var(--muted);margin-top:.25rem}
+    /* GRID */
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem}
+    .grid3{display:grid;grid-template-columns:2fr 1fr;gap:1.5rem}
+    /* CARD */
+    .card{background:var(--white);border-radius:18px;box-shadow:0 2px 16px rgba(15,23,42,.07);overflow:hidden;animation:fadeUp .7s ease both}
+    .card:nth-child(1){animation-delay:.25s}.card:nth-child(2){animation-delay:.3s}
+    .card-header{padding:1.1rem 1.5rem;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between}
+    .card-title{font-family:'Playfair Display',serif;font-size:1rem;color:var(--ink);display:flex;align-items:center;gap:.5rem}
+    .card-action{font-size:.8rem;color:var(--accent);text-decoration:none;font-weight:600;padding:.3rem .8rem;border-radius:8px;border:1.5px solid rgba(59,130,246,.25);transition:all .2s}
+    .card-action:hover{background:#eff6ff}
+    .card-body{padding:1.2rem 1.5rem}
+    /* TABLE */
+    table{width:100%;border-collapse:collapse}
+    th{padding:.75rem 1rem;text-align:left;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);background:#f8fafc;white-space:nowrap}
+    td{padding:.8rem 1rem;font-size:.86rem;border-top:1px solid #f1f5f9;vertical-align:middle}
+    tr:hover td{background:#fafbfc}
+    .badge{padding:.22rem .7rem;border-radius:50px;font-size:.7rem;font-weight:700}
+    .badge-pending{background:#fef9c3;color:#854d0e}.badge-confirmed{background:#dbeafe;color:#1e40af}
+    .badge-completed{background:#dcfce7;color:#166534}.badge-cancelled{background:#fee2e2;color:#991b1b}
+    .badge-paid{background:#dcfce7;color:#166534}.badge-unpaid{background:#fee2e2;color:#991b1b}
+    /* QUICK ACTION BTNS */
+    .qa-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+    .qa-btn{display:flex;align-items:center;gap:.7rem;padding:1rem;border-radius:12px;text-decoration:none;border:1.5px solid var(--border);background:var(--surface);transition:all .2s;cursor:pointer}
+    .qa-btn:hover{border-color:var(--accent);background:#eff6ff;transform:translateY(-1px)}
+    .qa-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+    .qa-text strong{display:block;font-size:.85rem;font-weight:600;color:var(--ink)}
+    .qa-text span{font-size:.75rem;color:var(--muted)}
+    .empty-state{text-align:center;padding:2rem;color:var(--muted);font-size:.88rem}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+    @media(max-width:1000px){.stats-grid{grid-template-columns:repeat(3,1fr)}.grid2,.grid3{grid-template-columns:1fr}}
+    @media(max-width:600px){.stats-grid{grid-template-columns:1fr 1fr}.nav-links{display:none}}
+  </style>
+</head>
+<body>
+<nav>
+  <a href="admin-dashboard.html" class="brand"><div class="brand-mark">🧬</div><span class="brand-name">Lab<b>Core</b></span></a>
+  <div class="nav-links">
+    <a href="admin-dashboard.html" class="nav-link active">Dashboard</a>
+    <a href="admin-bookings.html" class="nav-link">Bookings</a>
+    <a href="admin-doctors.html" class="nav-link">Doctors</a>
+    <a href="admin-tests.html" class="nav-link">Tests</a>
+    <a href="admin-patients.html" class="nav-link">Patients</a>
+  </div>
+  <div class="nav-right">
+    <span class="admin-badge">⚙️ Admin</span>
+    <button class="btn-logout" id="logoutBtn">Sign Out</button>
+  </div>
+</nav>
+
+<div class="main">
+  <div class="page-head">
+    <h1>Admin Dashboard</h1>
+    <p>System overview — all bookings, reports, and finances at a glance.</p>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-label">Total Bookings</div><div class="stat-num" id="sTotal">—</div><div class="stat-sub">All time</div></div>
+    <div class="stat-card"><div class="stat-label">Today's Bookings</div><div class="stat-num" id="sToday">—</div><div class="stat-sub">New today</div></div>
+    <div class="stat-card"><div class="stat-label">Revenue</div><div class="stat-num" id="sRevenue">—</div><div class="stat-sub">Total collected</div></div>
+    <div class="stat-card"><div class="stat-label">Reports Pending</div><div class="stat-num" id="sPending">—</div><div class="stat-sub">Awaiting approval</div></div>
+    <div class="stat-card"><div class="stat-label">Active Patients</div><div class="stat-num" id="sPatients">—</div><div class="stat-sub">Registered</div></div>
+  </div>
+
+  <!-- MAIN GRID -->
+  <div class="grid3">
+    <!-- Recent Bookings -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">📋 Recent Bookings</span>
+        <a href="admin-bookings.html" class="card-action">View All</a>
+      </div>
+      <div class="card-body" style="padding:0">
+        <table>
+          <thead><tr><th>#</th><th>Patient</th><th>Doctor</th><th>Date</th><th>Status</th><th>Payment</th></tr></thead>
+          <tbody id="recentBookings"><tr><td colspan="6" class="empty-state">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="card">
+      <div class="card-header"><span class="card-title">⚡ Quick Actions</span></div>
+      <div class="card-body">
+        <div class="qa-grid">
+          <a href="admin-doctors.html" class="qa-btn"><div class="qa-icon" style="background:#dbeafe">👨‍⚕️</div><div class="qa-text"><strong>Doctors</strong><span>Manage staff</span></div></a>
+          <a href="admin-tests.html" class="qa-btn"><div class="qa-icon" style="background:#dcfce7">🔬</div><div class="qa-text"><strong>Tests</strong><span>Add / edit</span></div></a>
+          <a href="admin-patients.html" class="qa-btn"><div class="qa-icon" style="background:#fef9c3">🧑‍⚕️</div><div class="qa-text"><strong>Patients</strong><span>View records</span></div></a>
+          <a href="admin-reports.html" class="qa-btn"><div class="qa-icon" style="background:#ede9fe">📄</div><div class="qa-text"><strong>Reports</strong><span>Approve results</span></div></a>
+          <a href="admin-technicians.html" class="qa-btn"><div class="qa-icon" style="background:#fee2e2">🧪</div><div class="qa-text"><strong>Lab Tech</strong><span>Manage staff</span></div></a>
+          <a href="admin-bookings.html" class="qa-btn"><div class="qa-icon" style="background:#f0fdf4">📅</div><div class="qa-text"><strong>Bookings</strong><span>All records</span></div></a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    await fetch('../api/logout.php', {method:'POST'});
+    sessionStorage.clear();
+    window.location.href = 'login.html';
+  });
+
+  function badgeCls(s){return{Pending:'badge-pending',Confirmed:'badge-confirmed',Completed:'badge-completed',Cancelled:'badge-cancelled'}[s]||'badge-pending'}
+
+  async function loadDashboard() {
+    try {
+      const res  = await fetch('../api/admin-dashboard.php');
+      const data = await res.json();
+      if (!data.success) { window.location.href = 'login.html'; return; }
+      const s = data.stats;
+      document.getElementById('sTotal').textContent    = s.total_bookings;
+      document.getElementById('sToday').textContent    = s.today_bookings;
+      document.getElementById('sRevenue').textContent  = `₹${parseFloat(s.revenue||0).toFixed(0)}`;
+      document.getElementById('sPending').textContent  = s.pending_reports;
+      document.getElementById('sPatients').textContent = s.total_patients;
+
+      const tbody = document.getElementById('recentBookings');
+      if (!data.bookings.length) { tbody.innerHTML = `<tr><td colspan="6" class="empty-state">No bookings yet.</td></tr>`; return; }
+      tbody.innerHTML = data.bookings.map(b => `
+        <tr>
+          <td><strong>#${b.booking_id}</strong></td>
+          <td>${b.patient_name}</td>
+          <td>Dr. ${b.doctor_name}</td>
+          <td>${b.booking_date}</td>
+          <td><span class="badge ${badgeCls(b.booking_status)}">${b.booking_status}</span></td>
+          <td><span class="badge ${b.payment_status==='Paid'?'badge-paid':'badge-unpaid'}">${b.payment_status}</span></td>
+        </tr>`).join('');
+    } catch(e) { console.error(e); }
+  }
+
+  loadDashboard();
+</script>
+</body>
+</html>

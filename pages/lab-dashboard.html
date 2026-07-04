@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>LabCore — Lab Technician Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--navy:#0d1e35;--blue:#1a3a6b;--accent:#3b82f6;--gold:#f0a500;--surface:#f0f4fb;--white:#fff;--muted:#94a3b8;--border:#dde3ef;--ink:#0f172a;--ok:#16a34a;--err:#dc2626;--warn:#d97706}
+    body{font-family:'Sora',sans-serif;background:var(--surface);color:var(--ink);min-height:100vh}
+    nav{background:var(--navy);display:flex;align-items:center;justify-content:space-between;padding:0 2rem;height:62px;position:sticky;top:0;z-index:100;box-shadow:0 2px 16px rgba(0,0,0,.25)}
+    .brand{display:flex;align-items:center;gap:.7rem;text-decoration:none}
+    .brand-mark{width:38px;height:38px;background:linear-gradient(135deg,var(--gold),#f97316);border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:1.15rem}
+    .brand-name{font-family:'Playfair Display',serif;font-size:1.4rem;color:#fff}.brand-name b{color:var(--gold)}
+    .nav-right{display:flex;align-items:center;gap:1rem}
+    .role-badge{background:rgba(16,185,129,.2);border:1px solid rgba(16,185,129,.4);color:#6ee7b7;font-size:.75rem;font-weight:700;padding:.25rem .75rem;border-radius:50px}
+    .btn-logout{padding:.38rem .9rem;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:8px;font-family:'Sora',sans-serif;font-size:.8rem;cursor:pointer;transition:background .2s}
+    .btn-logout:hover{background:rgba(255,255,255,.2)}
+    .main{max-width:1100px;margin:0 auto;padding:2rem 1.5rem}
+    .greeting{margin-bottom:2rem;animation:fadeUp .5s ease both}
+    .greeting h1{font-family:'Playfair Display',serif;font-size:1.9rem;margin-bottom:.25rem}
+    .greeting p{color:var(--muted);font-size:.9rem}
+    .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:2rem}
+    .stat-card{background:var(--white);border-radius:16px;padding:1.3rem 1.4rem;box-shadow:0 2px 12px rgba(15,23,42,.06);border-left:4px solid transparent;transition:transform .2s;animation:fadeUp .6s ease both}
+    .stat-card:hover{transform:translateY(-3px)}
+    .stat-card:nth-child(1){border-color:var(--accent);animation-delay:.05s}.stat-card:nth-child(2){border-color:var(--ok);animation-delay:.1s}.stat-card:nth-child(3){border-color:var(--gold);animation-delay:.15s}
+    .stat-label{font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:.4rem}
+    .stat-num{font-family:'Playfair Display',serif;font-size:2rem;color:var(--ink);line-height:1}
+    .stat-sub{font-size:.75rem;color:var(--muted);margin-top:.25rem}
+    .card{background:var(--white);border-radius:18px;box-shadow:0 2px 16px rgba(15,23,42,.07);overflow:hidden;margin-bottom:1.5rem;animation:fadeUp .7s ease both .25s}
+    .card-header{padding:1.1rem 1.5rem;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between}
+    .card-title{font-family:'Playfair Display',serif;font-size:1rem;color:var(--ink)}
+    table{width:100%;border-collapse:collapse}
+    th{padding:.75rem 1rem;text-align:left;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);background:#f8fafc;white-space:nowrap}
+    td{padding:.85rem 1rem;font-size:.87rem;border-top:1px solid #f1f5f9;vertical-align:middle}
+    tr:hover td{background:#fafbfc}
+    .badge{padding:.22rem .7rem;border-radius:50px;font-size:.7rem;font-weight:700}
+    .badge-pending{background:#fef9c3;color:#854d0e}.badge-collected{background:#dcfce7;color:#166534}.badge-confirmed{background:#dbeafe;color:#1e40af}
+    .btn-action{padding:.3rem .85rem;border-radius:8px;font-size:.78rem;font-weight:600;border:1.5px solid;background:transparent;cursor:pointer;font-family:'Sora',sans-serif;transition:all .2s}
+    .btn-collect{border-color:var(--accent);color:var(--accent)}.btn-collect:hover{background:var(--accent);color:#fff}
+    .btn-result{border-color:var(--ok);color:var(--ok)}.btn-result:hover{background:var(--ok);color:#fff}
+    /* MODAL */
+    .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;align-items:center;justify-content:center}
+    .modal-bg.open{display:flex}
+    .modal{background:#fff;border-radius:18px;padding:2rem;width:100%;max-width:500px;max-height:85vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3);animation:fadeUp .3s ease}
+    .modal h3{font-family:'Playfair Display',serif;font-size:1.3rem;margin-bottom:1.2rem}
+    .modal-close{float:right;background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--muted);line-height:1}
+    .field{margin-bottom:1rem}
+    .field label{display:block;font-size:.78rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#475569;margin-bottom:.4rem}
+    .field input,.field select,.field textarea{width:100%;padding:.75rem .9rem;border:1.5px solid var(--border);border-radius:10px;font-family:'Sora',sans-serif;font-size:.9rem;color:var(--ink);background:var(--surface);outline:none;appearance:none;transition:all .2s}
+    .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+    .field select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7' viewBox='0 0 12 7'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2394a3b8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .9rem center;padding-right:2.4rem}
+    .test-result-input{background:#f8fafc;border-radius:10px;padding:1rem;margin-bottom:.75rem}
+    .test-result-input .tname{font-weight:600;font-size:.9rem;margin-bottom:.75rem}
+    .g2{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+    .btn-submit-modal{width:100%;padding:.85rem;background:linear-gradient(135deg,var(--blue),var(--accent));color:#fff;border:none;border-radius:10px;font-family:'Sora',sans-serif;font-size:.95rem;font-weight:600;cursor:pointer;transition:all .2s;margin-top:.5rem}
+    .btn-submit-modal:hover{opacity:.9;transform:translateY(-1px)}
+    .alert{display:none;padding:.75rem 1rem;border-radius:10px;font-size:.84rem;font-weight:500;margin-bottom:1rem;align-items:center;gap:.5rem}
+    .alert.show{display:flex}
+    .alert-err{background:#fef2f2;border:1px solid #fecaca;color:var(--err)}
+    .alert-ok{background:#f0fdf4;border:1px solid #bbf7d0;color:var(--ok)}
+    .empty-state{text-align:center;padding:2rem;color:var(--muted);font-size:.88rem}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+    @media(max-width:700px){.stats-grid{grid-template-columns:1fr 1fr}}
+  </style>
+</head>
+<body>
+<nav>
+  <a href="lab-dashboard.html" class="brand"><div class="brand-mark">🧬</div><span class="brand-name">Lab<b>Core</b></span></a>
+  <div class="nav-right">
+    <span class="role-badge">🔬 Lab Tech</span>
+    <button class="btn-logout" id="logoutBtn">Sign Out</button>
+  </div>
+</nav>
+
+<div class="main">
+  <div class="greeting">
+    <h1>Lab Technician Panel 🔬</h1>
+    <p>Manage sample collections and enter test results.</p>
+  </div>
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-label">Pending Collection</div><div class="stat-num" id="sPending">—</div><div class="stat-sub">Samples to collect</div></div>
+    <div class="stat-card"><div class="stat-label">Collected Today</div><div class="stat-num" id="sToday">—</div><div class="stat-sub">Done today</div></div>
+    <div class="stat-card"><div class="stat-label">Results Entered</div><div class="stat-num" id="sResults">—</div><div class="stat-sub">Total this month</div></div>
+  </div>
+
+  <!-- Pending Collections -->
+  <div class="card">
+    <div class="card-header"><span class="card-title">🧪 Pending Sample Collections</span></div>
+    <table>
+      <thead><tr><th>Booking #</th><th>Patient</th><th>Date</th><th>Tests</th><th>Action</th></tr></thead>
+      <tbody id="pendingTbody"><tr><td colspan="5" class="empty-state">Loading…</td></tr></tbody>
+    </table>
+  </div>
+
+  <!-- Enter Results -->
+  <div class="card">
+    <div class="card-header"><span class="card-title">📝 Enter Test Results</span></div>
+    <table>
+      <thead><tr><th>Booking #</th><th>Patient</th><th>Collection Date</th><th>Tests</th><th>Action</th></tr></thead>
+      <tbody id="resultsTbody"><tr><td colspan="5" class="empty-state">Loading…</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- COLLECT MODAL -->
+<div class="modal-bg" id="collectModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('collectModal')">✕</button>
+    <h3>🧪 Record Sample Collection</h3>
+    <div class="alert alert-err" id="cErrBox"><span>⚠️</span><span id="cErrMsg"></span></div>
+    <input type="hidden" id="collectBookingId"/>
+    <div class="field">
+      <label>Collection Date</label>
+      <input type="date" id="collectDate"/>
+    </div>
+    <button class="btn-submit-modal" onclick="submitCollection()">Record Collection</button>
+  </div>
+</div>
+
+<!-- RESULTS MODAL -->
+<div class="modal-bg" id="resultsModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('resultsModal')">✕</button>
+    <h3>📝 Enter Test Results</h3>
+    <div class="alert alert-err" id="rErrBox"><span>⚠️</span><span id="rErrMsg"></span></div>
+    <input type="hidden" id="resultsBookingId"/>
+    <div id="resultFields"></div>
+    <button class="btn-submit-modal" onclick="submitResults()">Submit Results</button>
+  </div>
+</div>
+
+<script>
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    await fetch('../api/logout.php',{method:'POST'}); sessionStorage.clear(); window.location.href='login.html';
+  });
+
+  let collectionsData = [], resultsData = [];
+
+  function openModal(id){document.getElementById(id).classList.add('open')}
+  function closeModal(id){document.getElementById(id).classList.remove('open')}
+
+  function openCollect(bookingId) {
+    document.getElementById('collectBookingId').value = bookingId;
+    document.getElementById('collectDate').value = new Date().toISOString().split('T')[0];
+    document.getElementById('cErrBox').classList.remove('show');
+    openModal('collectModal');
+  }
+
+  function openResults(bookingId, tests) {
+    document.getElementById('resultsBookingId').value = bookingId;
+    document.getElementById('rErrBox').classList.remove('show');
+    document.getElementById('resultFields').innerHTML = tests.map(t => `
+      <div class="test-result-input">
+        <div class="tname">${t.test_name} <small style="color:var(--muted)">(Normal: ${t.normal_range||'N/A'})</small></div>
+        <input type="hidden" name="tid" value="${t.test_id}"/>
+        <div class="g2">
+          <div class="field"><label>Result Value</label><input type="text" name="result_${t.test_id}" placeholder="e.g. 90"/></div>
+          <div class="field"><label>Units</label><input type="text" name="units_${t.test_id}" placeholder="e.g. mg/dL" value="${t.sample_type||''}"/></div>
+        </div>
+        <div class="field"><label>Interpretation</label>
+          <select name="interp_${t.test_id}">
+            <option>Normal</option><option>Abnormal</option><option>Critical</option>
+          </select>
+        </div>
+      </div>`).join('');
+    openModal('resultsModal');
+  }
+
+  async function submitCollection() {
+    const bookingId = document.getElementById('collectBookingId').value;
+    const date      = document.getElementById('collectDate').value;
+    if (!date) { document.getElementById('cErrMsg').textContent='Select a date'; document.getElementById('cErrBox').classList.add('show'); return; }
+    const res  = await fetch('../api/collect-sample.php', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({booking_id:bookingId,collection_date:date}) });
+    const data = await res.json();
+    if (data.success) { closeModal('collectModal'); load(); } 
+    else { document.getElementById('cErrMsg').textContent=data.message; document.getElementById('cErrBox').classList.add('show'); }
+  }
+
+  async function submitResults() {
+    const bookingId = document.getElementById('resultsBookingId').value;
+    const tids = [...document.querySelectorAll('#resultFields input[name="tid"]')].map(i=>i.value);
+    const results = tids.map(id => ({
+      test_id: id,
+      result_value: document.querySelector(`input[name="result_${id}"]`).value,
+      units: document.querySelector(`input[name="units_${id}"]`).value,
+      interpretation: document.querySelector(`select[name="interp_${id}"]`).value,
+    }));
+    if (results.some(r => !r.result_value)) { document.getElementById('rErrMsg').textContent='Enter all result values'; document.getElementById('rErrBox').classList.add('show'); return; }
+    const res  = await fetch('../api/enter-results.php', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({booking_id:bookingId, results}) });
+    const data = await res.json();
+    if (data.success) { closeModal('resultsModal'); load(); }
+    else { document.getElementById('rErrMsg').textContent=data.message; document.getElementById('rErrBox').classList.add('show'); }
+  }
+
+  async function load() {
+    try {
+      const res=await fetch('../api/lab-dashboard.php'); const data=await res.json();
+      if(!data.success){window.location.href='login.html';return;}
+      document.getElementById('sPending').textContent=data.stats.pending;
+      document.getElementById('sToday').textContent=data.stats.today;
+      document.getElementById('sResults').textContent=data.stats.results;
+
+      const pt=document.getElementById('pendingTbody');
+      pt.innerHTML=data.pending.length?data.pending.map(b=>`
+        <tr><td><strong>#${b.booking_id}</strong></td><td>${b.patient_name}</td><td>${b.booking_date}</td>
+        <td>${b.test_count} test(s)</td>
+        <td><button class="btn-action btn-collect" onclick='openCollect(${b.booking_id})'>Collect</button></td></tr>`).join('')
+        :`<tr><td colspan="5" class="empty-state">No pending collections.</td></tr>`;
+
+      const rt=document.getElementById('resultsTbody');
+      rt.innerHTML=data.collected.length?data.collected.map(b=>`
+        <tr><td><strong>#${b.booking_id}</strong></td><td>${b.patient_name}</td><td>${b.collection_date}</td>
+        <td>${b.test_count} test(s)</td>
+        <td><button class="btn-action btn-result" onclick='openResults(${b.booking_id},${JSON.stringify(b.tests).replace(/'/g,"&#39;")})'>Enter Results</button></td></tr>`).join('')
+        :`<tr><td colspan="5" class="empty-state">No collected samples pending results.</td></tr>`;
+    } catch(e){console.error(e);}
+  }
+
+  load();
+</script>
+</body>
+</html>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>LabCore — My Reports</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--navy:#0d1e35;--blue:#1a3a6b;--accent:#3b82f6;--gold:#f0a500;--surface:#f0f4fb;--white:#fff;--muted:#94a3b8;--border:#dde3ef;--ink:#0f172a;--ok:#16a34a;--err:#dc2626;--warn:#d97706}
+    body{font-family:'Sora',sans-serif;background:var(--surface);color:var(--ink);min-height:100vh}
+    nav{background:var(--navy);padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:62px;position:sticky;top:0;z-index:100;box-shadow:0 2px 16px rgba(0,0,0,.25)}
+    .brand{display:flex;align-items:center;gap:.7rem;text-decoration:none}
+    .brand-mark{width:38px;height:38px;background:linear-gradient(135deg,var(--gold),#f97316);border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:1.15rem}
+    .brand-name{font-family:'Playfair Display',serif;font-size:1.4rem;color:#fff}.brand-name b{color:var(--gold)}
+    .nav-back{color:rgba(255,255,255,.7);font-size:.85rem;text-decoration:none}.nav-back:hover{color:#fff}
+    .main{max-width:1000px;margin:0 auto;padding:2rem 1.5rem}
+    h1{font-family:'Playfair Display',serif;font-size:1.9rem;margin-bottom:1.5rem;animation:fadeUp .5s ease both}
+
+    .reports-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.2rem}
+    .report-card{background:var(--white);border-radius:16px;box-shadow:0 2px 14px rgba(15,23,42,.07);overflow:hidden;transition:transform .2s;animation:fadeUp .6s ease both}
+    .report-card:hover{transform:translateY(-3px)}
+    .rc-header{padding:1.1rem 1.3rem;border-bottom:1px solid #f1f5f9;display:flex;justify-content:space-between;align-items:center}
+    .rc-id{font-weight:700;font-size:.95rem;color:var(--ink)}
+    .rc-date{font-size:.78rem;color:var(--muted)}
+    .badge{padding:.25rem .7rem;border-radius:50px;font-size:.7rem;font-weight:700}
+    .badge-approved{background:#ede9fe;color:#5b21b6}
+    .badge-ready{background:#dcfce7;color:#166534}
+    .badge-pending{background:#fef9c3;color:#854d0e}
+    .rc-body{padding:1.1rem 1.3rem}
+    .rc-meta{font-size:.82rem;color:var(--muted);margin-bottom:.8rem}
+    .test-result-row{display:flex;align-items:center;justify-content:space-between;padding:.45rem 0;border-bottom:1px solid #f8fafc;font-size:.85rem}
+    .test-result-row:last-child{border:none}
+    .tr-name{color:var(--ink);font-weight:500}
+    .tr-val{display:flex;align-items:center;gap:.5rem}
+    .interp-normal{color:var(--ok);font-size:.72rem;font-weight:700}
+    .interp-abnormal{color:var(--warn);font-size:.72rem;font-weight:700}
+    .interp-critical{color:var(--err);font-size:.72rem;font-weight:700}
+    .rc-footer{padding:.9rem 1.3rem;background:#f8fafc;display:flex;justify-content:space-between;align-items:center}
+    .approved-by{font-size:.78rem;color:var(--muted)}
+    .empty-state{text-align:center;padding:3rem;color:var(--muted);background:var(--white);border-radius:16px;box-shadow:0 2px 14px rgba(15,23,42,.07)}
+    .empty-state .ei{font-size:2.5rem;margin-bottom:.75rem}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+  </style>
+</head>
+<body>
+<nav>
+  <a href="patient-dashboard.html" class="brand"><div class="brand-mark">🧬</div><span class="brand-name">Lab<b>Core</b></span></a>
+  <a href="patient-dashboard.html" class="nav-back">← Dashboard</a>
+</nav>
+<div class="main">
+  <h1>My Reports</h1>
+  <div id="reportsContainer"><p style="color:var(--muted);text-align:center;padding:2rem">Loading reports…</p></div>
+</div>
+<script>
+  function interpClass(s){return{Normal:'interp-normal',Abnormal:'interp-abnormal',Critical:'interp-critical'}[s]||'interp-normal'}
+  function badgeCls(s){return{Approved:'badge-approved',Ready:'badge-ready',Pending:'badge-pending'}[s]||'badge-pending'}
+
+  async function loadReports() {
+    try {
+      const res  = await fetch('../api/my-reports.php');
+      const data = await res.json();
+      if (!data.success) { window.location.href = 'login.html'; return; }
+      const container = document.getElementById('reportsContainer');
+      if (!data.reports.length) {
+        container.innerHTML = `<div class="empty-state"><div class="ei">📋</div>No reports available yet.</div>`;
+        return;
+      }
+      container.innerHTML = `<div class="reports-grid">${data.reports.map(r => `
+        <div class="report-card">
+          <div class="rc-header">
+            <div>
+              <div class="rc-id">Report #${r.report_id}</div>
+              <div class="rc-date">${r.generated_date}</div>
+            </div>
+            <span class="badge ${badgeCls(r.report_status)}">${r.report_status}</span>
+          </div>
+          <div class="rc-body">
+            <div class="rc-meta">Booking #${r.booking_id} · Dr. ${r.doctor_name}</div>
+            ${r.details.map(d => `
+              <div class="test-result-row">
+                <div class="tr-name">${d.test_name}</div>
+                <div class="tr-val">
+                  <span>${d.result_value} ${d.units||''}</span>
+                  <span class="${interpClass(d.interpretation)}">${d.interpretation}</span>
+                </div>
+              </div>`).join('')}
+          </div>
+          <div class="rc-footer">
+            <span class="approved-by">${r.approved_by ? `Approved by Dr. ${r.approved_by}` : 'Pending approval'}</span>
+          </div>
+        </div>`).join('')}</div>`;
+    } catch(e) {
+      document.getElementById('reportsContainer').innerHTML = `<p style="color:var(--err);text-align:center">Failed to load reports.</p>`;
+    }
+  }
+  loadReports();
+</script>
+</body>
+</html>

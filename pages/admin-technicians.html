@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>LabCore — Lab Staff</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--navy:#0d1e35;--blue:#1a3a6b;--accent:#3b82f6;--gold:#f0a500;--gold-lit:#fbbf24;--surface:#f0f4fb;--white:#fff;--muted:#94a3b8;--border:#dde3ef;--ink:#0f172a;--ok:#16a34a;--err:#dc2626}
+    body{font-family:'Sora',sans-serif;background:var(--surface);color:var(--ink);min-height:100vh}
+    nav{background:var(--navy);display:flex;align-items:center;justify-content:space-between;padding:0 2rem;height:62px;position:sticky;top:0;z-index:200;box-shadow:0 2px 16px rgba(0,0,0,.3)}
+    .brand{display:flex;align-items:center;gap:.7rem;text-decoration:none}
+    .brand-mark{width:38px;height:38px;background:linear-gradient(135deg,var(--gold),#f97316);border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:1.15rem}
+    .brand-name{font-family:'Playfair Display',serif;font-size:1.4rem;color:#fff}.brand-name b{color:var(--gold)}
+    .nav-links{display:flex;gap:.2rem}
+    .nav-link{padding:.42rem .85rem;border-radius:8px;color:rgba(255,255,255,.6);font-size:.82rem;font-weight:500;text-decoration:none;transition:all .2s}
+    .nav-link:hover,.nav-link.active{background:rgba(255,255,255,.12);color:#fff}
+    .nav-right{display:flex;align-items:center;gap:.75rem}
+    .admin-badge{background:rgba(240,165,0,.18);border:1px solid rgba(240,165,0,.4);color:var(--gold-lit);font-size:.72rem;font-weight:700;padding:.22rem .7rem;border-radius:50px}
+    .btn-logout{padding:.36rem .85rem;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);color:#fff;border-radius:8px;font-family:'Sora',sans-serif;font-size:.8rem;cursor:pointer;transition:background .2s}
+    .btn-logout:hover{background:rgba(255,255,255,.2)}
+    .main{max-width:1000px;margin:0 auto;padding:2rem 1.5rem}
+    .page-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.8rem;animation:fadeUp .5s ease both}
+    .page-head h1{font-family:'Playfair Display',serif;font-size:1.85rem}
+    .page-head p{color:var(--muted);font-size:.88rem;margin-top:.2rem}
+    .btn-add{display:flex;align-items:center;gap:.5rem;padding:.6rem 1.2rem;background:linear-gradient(135deg,var(--blue),var(--accent));color:#fff;border:none;border-radius:10px;font-family:'Sora',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer;transition:all .2s}
+    .btn-add:hover{opacity:.9;transform:translateY(-1px);box-shadow:0 4px 14px rgba(59,130,246,.3)}
+    .card{background:var(--white);border-radius:18px;box-shadow:0 2px 16px rgba(15,23,42,.07);overflow:hidden;animation:fadeUp .6s ease both .1s}
+    .card-header{padding:1rem 1.5rem;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between}
+    .card-title{font-family:'Playfair Display',serif;font-size:1rem}
+    table{width:100%;border-collapse:collapse}
+    thead{background:#f8fafc}
+    th{padding:.8rem 1.2rem;text-align:left;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+    td{padding:.85rem 1.2rem;font-size:.86rem;border-top:1px solid #f1f5f9;vertical-align:middle}
+    tr:hover td{background:#fafbfc}
+    .avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#059669,#10b981);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.82rem;flex-shrink:0}
+    .staff-info{display:flex;align-items:center;gap:.75rem}
+    .staff-name{font-weight:600;font-size:.9rem}
+    .staff-email{font-size:.76rem;color:var(--muted)}
+    .badge{padding:.22rem .7rem;border-radius:50px;font-size:.7rem;font-weight:700}
+    .badge-active{background:#dcfce7;color:#166534}
+    .tbl-btn{padding:.28rem .75rem;border-radius:7px;font-size:.76rem;font-weight:600;border:1.5px solid;background:transparent;cursor:pointer;font-family:'Sora',sans-serif;transition:all .2s;margin-right:.3rem}
+    .tbl-btn.del{border-color:var(--err);color:var(--err)}.tbl-btn.del:hover{background:var(--err);color:#fff}
+    .empty-state{text-align:center;padding:3rem;color:var(--muted)}
+    .empty-state .ei{font-size:2.8rem;margin-bottom:.75rem}
+    /* MODAL */
+    .modal-bg{display:none;position:fixed;inset:0;background:rgba(8,15,26,.6);z-index:500;align-items:center;justify-content:center;padding:1rem}
+    .modal-bg.open{display:flex}
+    .modal{background:#fff;border-radius:20px;padding:2rem;width:100%;max-width:500px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,.25);animation:fadeUp .3s ease}
+    .modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
+    .modal-head h3{font-family:'Playfair Display',serif;font-size:1.3rem}
+    .modal-close{background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--muted)}
+    .field{margin-bottom:1rem}
+    .field label{display:block;font-size:.77rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#475569;margin-bottom:.4rem}
+    .req{color:var(--err);margin-left:2px}
+    .input-wrap{position:relative}
+    .fi{position:absolute;left:.9rem;top:50%;transform:translateY(-50%);font-size:.95rem;opacity:.38;pointer-events:none}
+    .field input,.field select{width:100%;padding:.78rem .9rem .78rem 2.6rem;border:1.5px solid var(--border);border-radius:10px;font-family:'Sora',sans-serif;font-size:.9rem;color:var(--ink);background:var(--surface);outline:none;appearance:none;transition:all .2s}
+    .field input:focus,.field select:focus{border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+    .field input::placeholder{color:#b8c4d0}
+    .field select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7' viewBox='0 0 12 7'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2394a3b8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .9rem center;padding-right:2.4rem}
+    .g2{display:grid;grid-template-columns:1fr 1fr;gap:.9rem}
+    .modal-footer{display:flex;gap:.75rem;margin-top:1.4rem}
+    .btn-cancel{flex:1;padding:.82rem;background:transparent;border:1.5px solid var(--border);border-radius:10px;font-family:'Sora',sans-serif;font-size:.92rem;font-weight:500;color:#475569;cursor:pointer;transition:all .2s}
+    .btn-cancel:hover{border-color:var(--accent);color:var(--accent)}
+    .btn-save{flex:2;padding:.82rem;background:linear-gradient(135deg,var(--blue),var(--accent));color:#fff;border:none;border-radius:10px;font-family:'Sora',sans-serif;font-size:.92rem;font-weight:600;cursor:pointer;transition:all .2s}
+    .btn-save:hover{opacity:.9}.btn-save:disabled{opacity:.6;cursor:not-allowed}
+    .spinner{display:none;width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto}
+    .btn-save.loading .btn-text{display:none}.btn-save.loading .spinner{display:inline-block}
+    .alert{display:none;padding:.75rem 1rem;border-radius:10px;font-size:.84rem;font-weight:500;margin-bottom:1rem;align-items:center;gap:.5rem}
+    .alert.show{display:flex}
+    .alert-err{background:#fef2f2;border:1px solid #fecaca;color:var(--err)}
+    .toast{position:fixed;bottom:1.5rem;right:1.5rem;background:#1e293b;color:#fff;padding:.85rem 1.3rem;border-radius:12px;font-size:.87rem;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.25);display:none;align-items:center;gap:.6rem;z-index:999}
+    .toast.show{display:flex}.toast.ok{border-left:4px solid var(--ok)}.toast.err{border-left:4px solid var(--err)}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @media(max-width:700px){.nav-links{display:none}.g2{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<nav>
+  <a href="admin-dashboard.html" class="brand"><div class="brand-mark">🧬</div><span class="brand-name">Lab<b>Core</b></span></a>
+  <div class="nav-links">
+    <a href="admin-dashboard.html" class="nav-link">Dashboard</a>
+    <a href="admin-bookings.html" class="nav-link">Bookings</a>
+    <a href="admin-doctors.html" class="nav-link">Doctors</a>
+    <a href="admin-tests.html" class="nav-link">Tests</a>
+    <a href="admin-patients.html" class="nav-link">Patients</a>
+    <a href="admin-technicians.html" class="nav-link active">Lab Staff</a>
+    <a href="admin-reports.html" class="nav-link">Reports</a>
+  </div>
+  <div class="nav-right">
+    <span class="admin-badge">⚙️ Admin</span>
+    <button class="btn-logout" id="logoutBtn">Sign Out</button>
+  </div>
+</nav>
+<div class="main">
+  <div class="page-head">
+    <div><h1>🧪 Lab Technicians</h1><p>Manage lab technician staff accounts.</p></div>
+    <button class="btn-add" onclick="openAdd()">+ Add Technician</button>
+  </div>
+  <div class="card">
+    <table>
+      <thead><tr><th>Staff Member</th><th>Phone</th><th>Staff ID</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody id="techTbody"><tr><td colspan="5" class="empty-state">Loading…</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="techModal">
+  <div class="modal">
+    <div class="modal-head"><h3>Add Lab Technician</h3><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div class="alert alert-err" id="modalErr"><span>⚠️</span><span id="modalErrMsg"></span></div>
+    <div class="g2">
+      <div class="field"><label>First Name <span class="req">*</span></label><div class="input-wrap"><span class="fi">✏️</span><input type="text" id="fFirst" placeholder="e.g. Priya"/></div></div>
+      <div class="field"><label>Last Name <span class="req">*</span></label><div class="input-wrap"><span class="fi">✏️</span><input type="text" id="fLast" placeholder="e.g. Verma"/></div></div>
+    </div>
+    <div class="g2">
+      <div class="field"><label>DOB <span class="req">*</span></label><div class="input-wrap"><span class="fi">📅</span><input type="date" id="fDob"/></div></div>
+      <div class="field"><label>Gender <span class="req">*</span></label><div class="input-wrap"><span class="fi">⚧</span><select id="fGender"><option value="">Select</option><option>Male</option><option>Female</option><option>Other</option></select></div></div>
+    </div>
+    <div class="field"><label>Email <span class="req">*</span></label><div class="input-wrap"><span class="fi">✉️</span><input type="email" id="fEmail" placeholder="tech@lab.com"/></div></div>
+    <div class="field"><label>Phone <span class="req">*</span></label><div class="input-wrap"><span class="fi">📱</span><input type="tel" id="fPhone" placeholder="9876543210"/></div></div>
+    <div class="field"><label>Password <span class="req">*</span></label><div class="input-wrap"><span class="fi">🔒</span><input type="password" id="fPwd" placeholder="Min. 8 characters"/></div></div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-save" id="saveBtn" onclick="saveTech()"><span class="btn-text">Add Technician</span><div class="spinner"></div></button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+  document.getElementById('logoutBtn').addEventListener('click',async()=>{await fetch('../api/logout.php',{method:'POST'});sessionStorage.clear();window.location.href='login.html'});
+  function showToast(msg,type='ok'){const t=document.getElementById('toast');t.textContent=(type==='ok'?'✅ ':'❌ ')+msg;t.className=`toast show ${type}`;setTimeout(()=>t.classList.remove('show'),3000)}
+  function openAdd(){['fFirst','fLast','fDob','fEmail','fPhone','fPwd'].forEach(id=>document.getElementById(id).value='');document.getElementById('fGender').value='';document.getElementById('modalErr').classList.remove('show');document.getElementById('techModal').classList.add('open')}
+  function closeModal(){document.getElementById('techModal').classList.remove('open')}
+
+  async function saveTech(){
+    const btn=document.getElementById('saveBtn'),errBox=document.getElementById('modalErr'),errMsg=document.getElementById('modalErrMsg');
+    const payload={first_name:document.getElementById('fFirst').value.trim(),last_name:document.getElementById('fLast').value.trim(),dob:document.getElementById('fDob').value,gender:document.getElementById('fGender').value,email:document.getElementById('fEmail').value.trim(),phone:document.getElementById('fPhone').value.trim(),password:document.getElementById('fPwd').value};
+    if(!payload.first_name||!payload.last_name||!payload.dob||!payload.gender||!payload.email||!payload.phone){errMsg.textContent='Fill all required fields.';errBox.classList.add('show');return}
+    if(payload.password.length<8){errMsg.textContent='Password must be 8+ characters.';errBox.classList.add('show');return}
+    btn.classList.add('loading');btn.disabled=true;
+    try{const res=await fetch('../api/admin-save-technician.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});const data=await res.json();
+    if(data.success){closeModal();showToast('Technician added!');loadTechs()}else{errMsg.textContent=data.message||'Save failed.';errBox.classList.add('show')}}
+    catch(e){errMsg.textContent='Network error.';errBox.classList.add('show')}
+    finally{btn.classList.remove('loading');btn.disabled=false}
+  }
+
+  async function deleteTech(personId,name){
+    if(!confirm(`Remove ${name}?`))return;
+    const res=await fetch('../api/admin-delete-person.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({person_id:personId})});
+    const data=await res.json();
+    if(data.success){showToast('Removed.');loadTechs()}else showToast(data.message||'Failed.','err')
+  }
+
+  async function loadTechs(){
+    try{const res=await fetch('../api/admin-get-technicians.php');const data=await res.json();
+    if(!data.success){window.location.href='login.html';return}
+    const tbody=document.getElementById('techTbody');
+    if(!data.techs.length){tbody.innerHTML=`<tr><td colspan="5"><div class="empty-state"><div class="ei">🧪</div>No technicians added yet.</div></td></tr>`;return}
+    tbody.innerHTML=data.techs.map(t=>`
+      <tr>
+        <td><div class="staff-info"><div class="avatar">${(t.first_name[0]||'')+(t.last_name[0]||'')}</div><div><div class="staff-name">${t.first_name} ${t.last_name}</div><div class="staff-email">${t.email}</div></div></div></td>
+        <td>${t.phone}</td><td>#${t.staff_id}</td>
+        <td><span class="badge badge-active">Active</span></td>
+        <td><button class="tbl-btn del" onclick="deleteTech(${t.person_id},'${t.first_name} ${t.last_name}')">Remove</button></td>
+      </tr>`).join('')}
+    catch(e){document.getElementById('techTbody').innerHTML=`<tr><td colspan="5" class="empty-state">Failed to load.</td></tr>`}
+  }
+  loadTechs();
+</script>
+</body>
+</html>

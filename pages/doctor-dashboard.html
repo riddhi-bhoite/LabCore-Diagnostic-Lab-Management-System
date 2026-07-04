@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>LabCore — Doctor Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--navy:#0d1e35;--blue:#1a3a6b;--accent:#3b82f6;--gold:#f0a500;--surface:#f0f4fb;--white:#fff;--muted:#94a3b8;--border:#dde3ef;--ink:#0f172a;--ok:#16a34a;--err:#dc2626;--warn:#d97706}
+    body{font-family:'Sora',sans-serif;background:var(--surface);color:var(--ink);min-height:100vh}
+    nav{background:var(--navy);display:flex;align-items:center;justify-content:space-between;padding:0 2rem;height:62px;position:sticky;top:0;z-index:100;box-shadow:0 2px 16px rgba(0,0,0,.25)}
+    .brand{display:flex;align-items:center;gap:.7rem;text-decoration:none}
+    .brand-mark{width:38px;height:38px;background:linear-gradient(135deg,var(--gold),#f97316);border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:1.15rem}
+    .brand-name{font-family:'Playfair Display',serif;font-size:1.4rem;color:#fff}.brand-name b{color:var(--gold)}
+    .nav-right{display:flex;align-items:center;gap:1rem}
+    .role-badge{background:rgba(59,130,246,.2);border:1px solid rgba(59,130,246,.4);color:#93c5fd;font-size:.75rem;font-weight:700;padding:.25rem .75rem;border-radius:50px}
+    .btn-logout{padding:.38rem .9rem;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:8px;font-family:'Sora',sans-serif;font-size:.8rem;cursor:pointer;transition:background .2s}
+    .btn-logout:hover{background:rgba(255,255,255,.2)}
+    .main{max-width:1100px;margin:0 auto;padding:2rem 1.5rem}
+    .greeting{margin-bottom:2rem;animation:fadeUp .5s ease both}
+    .greeting h1{font-family:'Playfair Display',serif;font-size:1.9rem;margin-bottom:.25rem}
+    .greeting p{color:var(--muted);font-size:.9rem}
+    .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem}
+    .stat-card{background:var(--white);border-radius:16px;padding:1.3rem 1.4rem;box-shadow:0 2px 12px rgba(15,23,42,.06);border-left:4px solid transparent;transition:transform .2s;animation:fadeUp .6s ease both}
+    .stat-card:hover{transform:translateY(-3px)}
+    .stat-card:nth-child(1){border-color:var(--accent);animation-delay:.05s}.stat-card:nth-child(2){border-color:var(--warn);animation-delay:.1s}.stat-card:nth-child(3){border-color:var(--ok);animation-delay:.15s}.stat-card:nth-child(4){border-color:#7c3aed;animation-delay:.2s}
+    .stat-label{font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:.4rem}
+    .stat-num{font-family:'Playfair Display',serif;font-size:2rem;color:var(--ink);line-height:1}
+    .stat-sub{font-size:.75rem;color:var(--muted);margin-top:.25rem}
+    .card{background:var(--white);border-radius:18px;box-shadow:0 2px 16px rgba(15,23,42,.07);overflow:hidden;animation:fadeUp .7s ease both .25s}
+    .card-header{padding:1.1rem 1.5rem;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between}
+    .card-title{font-family:'Playfair Display',serif;font-size:1rem;color:var(--ink)}
+    table{width:100%;border-collapse:collapse}
+    th{padding:.75rem 1rem;text-align:left;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);background:#f8fafc;white-space:nowrap}
+    td{padding:.85rem 1rem;font-size:.87rem;border-top:1px solid #f1f5f9;vertical-align:middle}
+    tr:hover td{background:#fafbfc}
+    .badge{padding:.22rem .7rem;border-radius:50px;font-size:.7rem;font-weight:700}
+    .badge-pending{background:#fef9c3;color:#854d0e}.badge-confirmed{background:#dbeafe;color:#1e40af}.badge-completed{background:#dcfce7;color:#166534}
+    .btn-approve{padding:.3rem .85rem;border-radius:8px;font-size:.78rem;font-weight:600;border:1.5px solid var(--ok);color:var(--ok);background:transparent;cursor:pointer;font-family:'Sora',sans-serif;transition:all .2s}
+    .btn-approve:hover{background:var(--ok);color:#fff}
+    .empty-state{text-align:center;padding:2.5rem;color:var(--muted);font-size:.88rem}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+    @media(max-width:800px){.stats-grid{grid-template-columns:1fr 1fr}}
+  </style>
+</head>
+<body>
+<nav>
+  <a href="doctor-dashboard.html" class="brand"><div class="brand-mark">🧬</div><span class="brand-name">Lab<b>Core</b></span></a>
+  <div class="nav-right">
+    <span class="role-badge">👨‍⚕️ Doctor</span>
+    <button class="btn-logout" id="logoutBtn">Sign Out</button>
+  </div>
+</nav>
+<div class="main">
+  <div class="greeting">
+    <h1>Doctor Dashboard 👨‍⚕️</h1>
+    <p>Your assigned bookings and reports pending approval.</p>
+  </div>
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-label">Total Assigned</div><div class="stat-num" id="sTotal">—</div><div class="stat-sub">All bookings</div></div>
+    <div class="stat-card"><div class="stat-label">Today</div><div class="stat-num" id="sToday">—</div><div class="stat-sub">Appointments</div></div>
+    <div class="stat-card"><div class="stat-label">Completed</div><div class="stat-num" id="sCompleted">—</div><div class="stat-sub">This month</div></div>
+    <div class="stat-card"><div class="stat-label">Pending Approval</div><div class="stat-num" id="sPending">—</div><div class="stat-sub">Reports to review</div></div>
+  </div>
+
+  <div class="card" style="margin-bottom:1.5rem">
+    <div class="card-header"><span class="card-title">📋 My Bookings</span></div>
+    <table>
+      <thead><tr><th>#</th><th>Patient</th><th>Date</th><th>Tests</th><th>Status</th></tr></thead>
+      <tbody id="bookingsTbody"><tr><td colspan="5" class="empty-state">Loading…</td></tr></tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><span class="card-title">📄 Reports Pending Approval</span></div>
+    <table>
+      <thead><tr><th>Report #</th><th>Patient</th><th>Generated</th><th>Tests</th><th>Action</th></tr></thead>
+      <tbody id="reportsTbody"><tr><td colspan="5" class="empty-state">Loading…</td></tr></tbody>
+    </table>
+  </div>
+</div>
+<script>
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    await fetch('../api/logout.php',{method:'POST'}); sessionStorage.clear(); window.location.href='login.html';
+  });
+  function badgeCls(s){return{Pending:'badge-pending',Confirmed:'badge-confirmed',Completed:'badge-completed'}[s]||'badge-pending'}
+  async function load() {
+    try {
+      const res=await fetch('../api/doctor-dashboard.php'); const data=await res.json();
+      if(!data.success){window.location.href='login.html';return;}
+      const s=data.stats;
+      document.getElementById('sTotal').textContent=s.total;document.getElementById('sToday').textContent=s.today;
+      document.getElementById('sCompleted').textContent=s.completed;document.getElementById('sPending').textContent=s.pending_reports;
+      const bt=document.getElementById('bookingsTbody');
+      bt.innerHTML=data.bookings.length?data.bookings.map(b=>`<tr><td><strong>#${b.booking_id}</strong></td><td>${b.patient_name}</td><td>${b.booking_date}</td><td>${b.test_count} test(s)</td><td><span class="badge ${badgeCls(b.booking_status)}">${b.booking_status}</span></td></tr>`).join(''):`<tr><td colspan="5" class="empty-state">No bookings assigned.</td></tr>`;
+      const rt=document.getElementById('reportsTbody');
+      rt.innerHTML=data.reports.length?data.reports.map(r=>`<tr><td><strong>#${r.report_id}</strong></td><td>${r.patient_name}</td><td>${r.generated_date}</td><td>${r.test_count} test(s)</td><td><button class="btn-approve" onclick="approveReport(${r.report_id})">Approve</button></td></tr>`).join(''):`<tr><td colspan="5" class="empty-state">No reports pending.</td></tr>`;
+    } catch(e){console.error(e);}
+  }
+  async function approveReport(id) {
+    const res=await fetch('../api/approve-report.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({report_id:id})});
+    const data=await res.json(); if(data.success) load();
+  }
+  load();
+</script>
+</body>
+</html>

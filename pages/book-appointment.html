@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LabCore — Book Appointment</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--navy:#0d1e35;--blue:#1a3a6b;--accent:#3b82f6;--gold:#f0a500;--surface:#f0f4fb;--white:#fff;--muted:#94a3b8;--border:#dde3ef;--ink:#0f172a;--ok:#16a34a;--err:#dc2626}
+    body{font-family:'Sora',sans-serif;background:var(--surface);color:var(--ink);min-height:100vh}
+    nav{background:var(--navy);padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:62px;position:sticky;top:0;z-index:100;box-shadow:0 2px 16px rgba(0,0,0,.25)}
+    .brand{display:flex;align-items:center;gap:.7rem;text-decoration:none}
+    .brand-mark{width:38px;height:38px;background:linear-gradient(135deg,var(--gold),#f97316);border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:1.15rem}
+    .brand-name{font-family:'Playfair Display',serif;font-size:1.4rem;color:#fff}.brand-name b{color:var(--gold)}
+    .nav-back{color:rgba(255,255,255,.7);font-size:.85rem;text-decoration:none;display:flex;align-items:center;gap:.4rem}
+    .nav-back:hover{color:#fff}
+    .main{max-width:860px;margin:0 auto;padding:2rem 1.5rem 4rem}
+    .page-head{margin-bottom:2rem;animation:fadeUp .5s ease both}
+    .page-head h1{font-family:'Playfair Display',serif;font-size:1.9rem;margin-bottom:.25rem}
+    .page-head p{color:var(--muted);font-size:.9rem}
+
+    /* STEPS */
+    .steps{display:flex;align-items:center;margin-bottom:2rem;animation:fadeUp .5s ease both .1s}
+    .step{display:flex;align-items:center;gap:.5rem;font-size:.8rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+    .step-num{width:28px;height:28px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.78rem;transition:all .3s}
+    .step.active .step-num{border-color:var(--accent);color:var(--accent);background:#eff6ff}
+    .step.active{color:var(--accent)}
+    .step.done .step-num{border-color:var(--ok);background:var(--ok);color:#fff}
+    .step-sep{flex:1;height:2px;background:var(--border);margin:0 .5rem;transition:background .3s}
+    .step-sep.done{background:var(--ok)}
+
+    .card{background:var(--white);border-radius:18px;box-shadow:0 2px 16px rgba(15,23,42,.07);overflow:hidden;animation:fadeUp .6s ease both .2s}
+    .card-section{padding:1.8rem 2rem;border-bottom:1px solid #f1f5f9;display:none}
+    .card-section.active{display:block}
+    .section-title{font-family:'Playfair Display',serif;font-size:1.1rem;margin-bottom:1.2rem;color:var(--ink)}
+
+    .field{margin-bottom:1rem}
+    .field label{display:block;font-size:.78rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:#475569;margin-bottom:.4rem}
+    .field select,.field input[type="date"]{width:100%;padding:.78rem .9rem .78rem 2.6rem;border:1.5px solid var(--border);border-radius:10px;font-family:'Sora',sans-serif;font-size:.92rem;color:var(--ink);background:var(--surface);outline:none;appearance:none;transition:border-color .2s,box-shadow .2s}
+    .field select:focus,.field input[type="date"]:focus{border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+    .input-wrap{position:relative}
+    .input-icon{position:absolute;left:.9rem;top:50%;transform:translateY(-50%);font-size:.95rem;opacity:.4;pointer-events:none}
+    .field select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7' viewBox='0 0 12 7'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2394a3b8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .9rem center;padding-right:2.4rem}
+
+    /* TEST GRID */
+    .test-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:.75rem;margin-top:.75rem}
+    .test-card{border:1.5px solid var(--border);border-radius:12px;padding:1rem;cursor:pointer;transition:all .2s;background:var(--surface)}
+    .test-card:hover{border-color:var(--accent);background:#eff6ff}
+    .test-card.selected{border-color:var(--accent);background:#eff6ff;box-shadow:0 0 0 3px rgba(59,130,246,.15)}
+    .test-card input[type="checkbox"]{display:none}
+    .tc-name{font-size:.9rem;font-weight:600;color:var(--ink);margin-bottom:.25rem}
+    .tc-cat{font-size:.75rem;color:var(--muted)}
+    .tc-price{font-size:.9rem;font-weight:700;color:var(--accent);margin-top:.4rem}
+    .tc-check{float:right;width:20px;height:20px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.7rem;color:transparent;transition:all .2s}
+    .test-card.selected .tc-check{background:var(--accent);border-color:var(--accent);color:#fff}
+
+    /* SUMMARY */
+    .summary-row{display:flex;justify-content:space-between;align-items:center;padding:.6rem 0;border-bottom:1px solid #f1f5f9;font-size:.9rem}
+    .summary-row:last-child{border:none;font-weight:700;font-size:1rem;padding-top:.8rem}
+    .summary-label{color:var(--muted)}
+    .summary-val{color:var(--ink)}
+
+    .total-box{background:linear-gradient(135deg,var(--blue),var(--accent));border-radius:12px;padding:1rem 1.5rem;color:#fff;display:flex;justify-content:space-between;align-items:center;margin-top:1rem}
+    .total-box .t-label{font-size:.82rem;opacity:.8}
+    .total-box .t-amount{font-family:'Playfair Display',serif;font-size:1.8rem}
+
+    .card-nav{padding:1.4rem 2rem;background:#f8fafc;border-top:1px solid #f1f5f9;display:flex;gap:1rem}
+    .btn-prev{padding:.78rem 1.6rem;background:transparent;border:1.5px solid var(--border);border-radius:10px;font-family:'Sora',sans-serif;font-size:.9rem;font-weight:500;color:#475569;cursor:pointer;transition:all .2s}
+    .btn-prev:hover{border-color:var(--accent);color:var(--accent)}
+    .btn-prev:disabled{opacity:.3;cursor:not-allowed}
+    .btn-next,.btn-confirm{flex:1;padding:.82rem;background:linear-gradient(135deg,var(--blue),var(--accent));color:#fff;border:none;border-radius:10px;font-family:'Sora',sans-serif;font-size:.95rem;font-weight:600;cursor:pointer;transition:all .2s}
+    .btn-next:hover,.btn-confirm:hover{opacity:.9;transform:translateY(-1px);box-shadow:0 6px 20px rgba(59,130,246,.28)}
+    .btn-confirm:disabled{opacity:.6;cursor:not-allowed;transform:none}
+    .spinner{display:none;width:18px;height:18px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto}
+    .btn-confirm.loading .btn-text{display:none}.btn-confirm.loading .spinner{display:block}
+
+    .alert{display:none;padding:.8rem 1rem;border-radius:10px;font-size:.85rem;font-weight:500;margin-bottom:1.2rem;align-items:center;gap:.5rem}
+    .alert.show{display:flex}
+    .alert-err{background:#fef2f2;border:1px solid #fecaca;color:var(--err)}
+    .alert-ok{background:#f0fdf4;border:1px solid #bbf7d0;color:var(--ok)}
+
+    @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @media(max-width:600px){.card-section{padding:1.2rem}.card-nav{padding:1rem}.test-grid{grid-template-columns:1fr 1fr}}
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="patient-dashboard.html" class="brand">
+    <div class="brand-mark">🧬</div>
+    <span class="brand-name">Lab<b>Core</b></span>
+  </a>
+  <a href="patient-dashboard.html" class="nav-back">← Back to Dashboard</a>
+</nav>
+
+<div class="main">
+  <div class="page-head">
+    <h1>Book Appointment</h1>
+    <p>Select a doctor, choose your tests, and confirm your booking.</p>
+  </div>
+
+  <!-- STEP INDICATOR -->
+  <div class="steps">
+    <div class="step active" id="s1"><div class="step-num" id="sn1">1</div>Doctor & Date</div>
+    <div class="step-sep" id="sep1"></div>
+    <div class="step" id="s2"><div class="step-num" id="sn2">2</div>Select Tests</div>
+    <div class="step-sep" id="sep2"></div>
+    <div class="step" id="s3"><div class="step-num" id="sn3">3</div>Confirm</div>
+  </div>
+
+  <div class="alert alert-err" id="errBox"><span>⚠️</span><span id="errMsg"></span></div>
+  <div class="alert alert-ok"  id="okBox"><span>✅</span><span id="okMsg"></span></div>
+
+  <div class="card">
+
+    <!-- STEP 1 -->
+    <div class="card-section active" id="step1">
+      <div class="section-title">🩺 Choose Doctor &amp; Date</div>
+      <div class="field">
+        <label>Select Doctor</label>
+        <div class="input-wrap">
+          <span class="input-icon">👨‍⚕️</span>
+          <select id="doctorSelect"><option value="">Loading doctors…</option></select>
+        </div>
+      </div>
+      <div id="doctorInfo" style="display:none;background:#f8fafc;border-radius:10px;padding:1rem;margin-bottom:1rem;font-size:.88rem;color:var(--muted)"></div>
+      <div class="field">
+        <label>Appointment Date</label>
+        <div class="input-wrap">
+          <span class="input-icon">📅</span>
+          <input type="date" id="bookDate"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="card-section" id="step2">
+      <div class="section-title">🔬 Select Tests</div>
+      <p style="font-size:.85rem;color:var(--muted);margin-bottom:.75rem">Choose one or more tests. Prices shown are per test.</p>
+      <div class="test-grid" id="testGrid">Loading tests…</div>
+      <div style="margin-top:1rem;font-size:.85rem;color:var(--muted)">Selected: <strong id="selectedCount" style="color:var(--accent)">0</strong> test(s) — Total: <strong id="selectedTotal" style="color:var(--accent)">₹0</strong></div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="card-section" id="step3">
+      <div class="section-title">✅ Confirm Booking</div>
+      <div id="confirmSummary"></div>
+      <div class="total-box">
+        <div><div class="t-label">Total Amount</div></div>
+        <div class="t-amount" id="confirmTotal">₹0</div>
+      </div>
+    </div>
+
+    <div class="card-nav">
+      <button class="btn-prev" id="prevBtn" disabled>← Back</button>
+      <button class="btn-next" id="nextBtn">Continue →</button>
+      <button class="btn-confirm" id="confirmBtn" style="display:none">
+        <span class="btn-text">Confirm Booking</span>
+        <div class="spinner"></div>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let step = 1, doctors = [], tests = [], selectedTests = new Set();
+
+  // Set min date = today
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('bookDate').min = today;
+  document.getElementById('bookDate').value = today;
+
+  function showErr(m){document.getElementById('errMsg').textContent=m;document.getElementById('errBox').classList.add('show');document.getElementById('okBox').classList.remove('show')}
+  function showOk(m){document.getElementById('okMsg').textContent=m;document.getElementById('okBox').classList.add('show');document.getElementById('errBox').classList.remove('show')}
+  function clearAlerts(){document.getElementById('errBox').classList.remove('show');document.getElementById('okBox').classList.remove('show')}
+
+  function updateStepUI() {
+    [1,2,3].forEach(i => {
+      const s = document.getElementById(`s${i}`), sn = document.getElementById(`sn${i}`);
+      s.classList.remove('active','done');
+      if (i < step) { s.classList.add('done'); sn.textContent = '✓'; }
+      else if (i === step) { s.classList.add('active'); sn.textContent = i; }
+      else sn.textContent = i;
+      document.getElementById(`step${i}`).classList.toggle('active', i === step);
+    });
+    [1,2].forEach(i => document.getElementById(`sep${i}`).classList.toggle('done', i < step));
+    document.getElementById('prevBtn').disabled = step === 1;
+    document.getElementById('nextBtn').style.display    = step < 3 ? '' : 'none';
+    document.getElementById('confirmBtn').style.display = step === 3 ? '' : 'none';
+  }
+
+  // Load doctors
+  async function loadDoctors() {
+    const res = await fetch('../api/get-doctors.php');
+    const data = await res.json();
+    doctors = data.doctors || [];
+    const sel = document.getElementById('doctorSelect');
+    sel.innerHTML = '<option value="">— Select a doctor —</option>' +
+      doctors.map(d => `<option value="${d.doctor_id}">${d.name} — ${d.specialization} (${d.hospital})</option>`).join('');
+  }
+
+  document.getElementById('doctorSelect').addEventListener('change', function() {
+    const doc = doctors.find(d => d.doctor_id == this.value);
+    const info = document.getElementById('doctorInfo');
+    if (doc) {
+      info.style.display = 'block';
+      info.innerHTML = `<strong>${doc.name}</strong> &nbsp;|&nbsp; ${doc.specialization} &nbsp;|&nbsp; 🏥 ${doc.hospital}`;
+    } else { info.style.display = 'none'; }
+  });
+
+  // Load tests
+  async function loadTests() {
+    const res = await fetch('../api/get-tests.php');
+    const data = await res.json();
+    tests = data.tests || [];
+    const grid = document.getElementById('testGrid');
+    grid.innerHTML = tests.map(t => `
+      <div class="test-card" data-id="${t.test_id}" data-price="${t.test_price}" onclick="toggleTest(this)">
+        <div class="tc-check">✓</div>
+        <div class="tc-name">${t.test_name}</div>
+        <div class="tc-cat">${t.test_category} · ${t.sample_type}</div>
+        <div class="tc-price">₹${parseFloat(t.test_price).toFixed(2)}</div>
+      </div>`).join('');
+  }
+
+  function toggleTest(el) {
+    const id = el.dataset.id;
+    if (selectedTests.has(id)) { selectedTests.delete(id); el.classList.remove('selected'); }
+    else { selectedTests.add(id); el.classList.add('selected'); }
+    updateTestSummary();
+  }
+
+  function updateTestSummary() {
+    let total = 0, count = 0;
+    selectedTests.forEach(id => {
+      const t = tests.find(x => x.test_id == id);
+      if (t) { total += parseFloat(t.test_price); count++; }
+    });
+    document.getElementById('selectedCount').textContent = count;
+    document.getElementById('selectedTotal').textContent = `₹${total.toFixed(2)}`;
+  }
+
+  function buildConfirmSummary() {
+    const docId = document.getElementById('doctorSelect').value;
+    const date  = document.getElementById('bookDate').value;
+    const doc   = doctors.find(d => d.doctor_id == docId);
+    let total = 0;
+    const testRows = [...selectedTests].map(id => {
+      const t = tests.find(x => x.test_id == id);
+      total += parseFloat(t.test_price);
+      return `<div class="summary-row"><span class="summary-label">${t.test_name}</span><span class="summary-val">₹${parseFloat(t.test_price).toFixed(2)}</span></div>`;
+    }).join('');
+    document.getElementById('confirmTotal').textContent = `₹${total.toFixed(2)}`;
+    document.getElementById('confirmSummary').innerHTML = `
+      <div class="summary-row"><span class="summary-label">Doctor</span><span class="summary-val">${doc.name}</span></div>
+      <div class="summary-row"><span class="summary-label">Specialization</span><span class="summary-val">${doc.specialization}</span></div>
+      <div class="summary-row"><span class="summary-label">Date</span><span class="summary-val">${date}</span></div>
+      <div class="summary-row"><span class="summary-label">Tests (${selectedTests.size})</span><span class="summary-val"></span></div>
+      ${testRows}`;
+  }
+
+  document.getElementById('nextBtn').addEventListener('click', () => {
+    clearAlerts();
+    if (step === 1) {
+      if (!document.getElementById('doctorSelect').value) { showErr('Please select a doctor.'); return; }
+      if (!document.getElementById('bookDate').value) { showErr('Please select a date.'); return; }
+      loadTests();
+    }
+    if (step === 2) {
+      if (selectedTests.size === 0) { showErr('Please select at least one test.'); return; }
+      buildConfirmSummary();
+    }
+    step++; updateStepUI();
+  });
+
+  document.getElementById('prevBtn').addEventListener('click', () => { if(step>1){clearAlerts();step--;updateStepUI();} });
+
+  document.getElementById('confirmBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('confirmBtn');
+    btn.classList.add('loading'); btn.disabled = true;
+    const payload = {
+      doctor_id:   document.getElementById('doctorSelect').value,
+      booking_date: document.getElementById('bookDate').value,
+      test_ids:    [...selectedTests],
+    };
+    try {
+      const res  = await fetch('../api/book-appointment.php', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+      const data = await res.json();
+      if (data.success) {
+        showOk('Booking confirmed! Redirecting…');
+        setTimeout(() => window.location.href = 'my-bookings.html', 1200);
+      } else { showErr(data.message || 'Booking failed.'); }
+    } catch(e) { showErr('Network error. Please try again.'); }
+    finally { btn.classList.remove('loading'); btn.disabled = false; }
+  });
+
+  loadDoctors();
+  updateStepUI();
+</script>
+</body>
+</html>

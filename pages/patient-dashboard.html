@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LabCore — Patient Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --navy:#0d1e35;--blue:#1a3a6b;--accent:#3b82f6;
+      --gold:#f0a500;--gold-lit:#fbbf24;
+      --surface:#f0f4fb;--white:#fff;--muted:#94a3b8;
+      --border:#dde3ef;--ink:#0f172a;
+      --ok:#16a34a;--err:#dc2626;--warn:#d97706;
+    }
+    body{font-family:'Sora',sans-serif;background:var(--surface);color:var(--ink);min-height:100vh;display:flex;flex-direction:column;}
+
+    /* NAV */
+    nav{background:var(--navy);padding:0 2rem;display:flex;align-items:center;justify-content:space-between;height:62px;position:sticky;top:0;z-index:100;box-shadow:0 2px 16px rgba(0,0,0,.25)}
+    .brand{display:flex;align-items:center;gap:.7rem;text-decoration:none}
+    .brand-mark{width:38px;height:38px;background:linear-gradient(135deg,var(--gold),#f97316);border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:1.15rem}
+    .brand-name{font-family:'Playfair Display',serif;font-size:1.4rem;color:#fff}.brand-name b{color:var(--gold)}
+    .nav-right{display:flex;align-items:center;gap:1rem}
+    .nav-user{color:rgba(255,255,255,.75);font-size:.85rem}
+    .nav-user strong{color:#fff}
+    .btn-logout{padding:.4rem 1rem;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:8px;font-family:'Sora',sans-serif;font-size:.82rem;cursor:pointer;transition:background .2s}
+    .btn-logout:hover{background:rgba(255,255,255,.2)}
+
+    /* LAYOUT */
+    .main{flex:1;max-width:1100px;width:100%;margin:0 auto;padding:2rem 1.5rem}
+
+    /* GREETING */
+    .greeting{margin-bottom:2rem;animation:fadeUp .6s ease both}
+    .greeting h1{font-family:'Playfair Display',serif;font-size:1.9rem;color:var(--ink);margin-bottom:.25rem}
+    .greeting p{color:var(--muted);font-size:.9rem}
+
+    /* STAT CARDS */
+    .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem}
+    .stat-card{background:var(--white);border-radius:16px;padding:1.4rem 1.5rem;box-shadow:0 2px 12px rgba(15,23,42,.06);animation:fadeUp .6s ease both;border-left:4px solid transparent;transition:transform .2s}
+    .stat-card:hover{transform:translateY(-3px)}
+    .stat-card.blue{border-color:var(--accent)}.stat-card.gold{border-color:var(--gold)}.stat-card.ok{border-color:var(--ok)}.stat-card.warn{border-color:var(--warn)}
+    .stat-card:nth-child(1){animation-delay:.05s}.stat-card:nth-child(2){animation-delay:.1s}.stat-card:nth-child(3){animation-delay:.15s}.stat-card:nth-child(4){animation-delay:.2s}
+    .stat-label{font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:.5rem}
+    .stat-num{font-family:'Playfair Display',serif;font-size:2.1rem;color:var(--ink);line-height:1}
+    .stat-sub{font-size:.78rem;color:var(--muted);margin-top:.3rem}
+
+    /* QUICK ACTIONS */
+    .actions-row{display:flex;gap:1rem;margin-bottom:2rem;flex-wrap:wrap}
+    .btn-action{display:flex;align-items:center;gap:.6rem;padding:.75rem 1.4rem;border-radius:11px;font-family:'Sora',sans-serif;font-size:.9rem;font-weight:600;cursor:pointer;text-decoration:none;transition:all .2s;border:none}
+    .btn-primary{background:linear-gradient(135deg,var(--blue),var(--accent));color:#fff;box-shadow:0 4px 14px rgba(59,130,246,.3)}
+    .btn-primary:hover{opacity:.9;transform:translateY(-2px);box-shadow:0 6px 20px rgba(59,130,246,.35)}
+    .btn-outline{background:#fff;color:var(--ink);border:1.5px solid var(--border)}
+    .btn-outline:hover{border-color:var(--accent);color:var(--accent)}
+
+    /* PANEL GRID */
+    .panel-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+
+    /* CARD */
+    .card{background:var(--white);border-radius:18px;box-shadow:0 2px 16px rgba(15,23,42,.07);overflow:hidden;animation:fadeUp .7s ease both}
+    .card:nth-child(1){animation-delay:.25s}.card:nth-child(2){animation-delay:.3s}
+    .card-header{padding:1.2rem 1.5rem;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between}
+    .card-title{font-family:'Playfair Display',serif;font-size:1.05rem;color:var(--ink);display:flex;align-items:center;gap:.5rem}
+    .card-link{font-size:.8rem;color:var(--accent);text-decoration:none;font-weight:600}
+    .card-link:hover{text-decoration:underline}
+    .card-body{padding:1.2rem 1.5rem}
+
+    /* BOOKING ROWS */
+    .booking-item{display:flex;align-items:center;justify-content:space-between;padding:.75rem 0;border-bottom:1px solid #f8fafc}
+    .booking-item:last-child{border-bottom:none}
+    .booking-info .b-date{font-size:.82rem;color:var(--muted)}
+    .booking-info .b-doc{font-size:.92rem;font-weight:600;color:var(--ink)}
+    .booking-info .b-tests{font-size:.78rem;color:var(--muted);margin-top:.1rem}
+    .badge{padding:.25rem .75rem;border-radius:50px;font-size:.72rem;font-weight:700;letter-spacing:.04em}
+    .badge-pending{background:#fef9c3;color:#854d0e}
+    .badge-confirmed{background:#dbeafe;color:#1e40af}
+    .badge-completed{background:#dcfce7;color:#166534}
+    .badge-cancelled{background:#fee2e2;color:#991b1b}
+
+    /* REPORT ROWS */
+    .report-item{display:flex;align-items:center;justify-content:space-between;padding:.75rem 0;border-bottom:1px solid #f8fafc}
+    .report-item:last-child{border-bottom:none}
+    .report-info .r-name{font-size:.92rem;font-weight:600;color:var(--ink)}
+    .report-info .r-date{font-size:.78rem;color:var(--muted)}
+    .badge-ready{background:#dcfce7;color:#166534}
+    .badge-approved{background:#ede9fe;color:#5b21b6}
+    .badge-processing{background:#fef9c3;color:#854d0e}
+
+    .empty-state{text-align:center;padding:2rem;color:var(--muted);font-size:.9rem}
+    .empty-state .empty-icon{font-size:2.5rem;margin-bottom:.5rem}
+
+    #loadingOverlay{display:flex;align-items:center;justify-content:center;padding:2rem;color:var(--muted);font-size:.9rem}
+
+    @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+    @media(max-width:900px){.stats-grid{grid-template-columns:1fr 1fr}.panel-grid{grid-template-columns:1fr}}
+    @media(max-width:500px){.stats-grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="patient-dashboard.html" class="brand">
+    <div class="brand-mark">🧬</div>
+    <span class="brand-name">Lab<b>Core</b></span>
+  </a>
+  <div class="nav-right">
+    <span class="nav-user">Welcome, <strong id="navName">Patient</strong></span>
+    <button class="btn-logout" id="logoutBtn">Sign Out</button>
+  </div>
+</nav>
+
+<div class="main">
+
+  <!-- GREETING -->
+  <div class="greeting">
+    <h1>Good day, <span id="greetName">—</span> 👋</h1>
+    <p>Here's an overview of your bookings, tests, and reports.</p>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-grid" id="statsGrid">
+    <div class="stat-card blue">
+      <div class="stat-label">Total Bookings</div>
+      <div class="stat-num" id="statTotal">—</div>
+      <div class="stat-sub">All time</div>
+    </div>
+    <div class="stat-card warn">
+      <div class="stat-label">Pending</div>
+      <div class="stat-num" id="statPending">—</div>
+      <div class="stat-sub">Awaiting confirmation</div>
+    </div>
+    <div class="stat-card ok">
+      <div class="stat-label">Completed</div>
+      <div class="stat-num" id="statCompleted">—</div>
+      <div class="stat-sub">Tests done</div>
+    </div>
+    <div class="stat-card gold">
+      <div class="stat-label">Reports Ready</div>
+      <div class="stat-num" id="statReports">—</div>
+      <div class="stat-sub">Available to view</div>
+    </div>
+  </div>
+
+  <!-- ACTIONS -->
+  <div class="actions-row">
+    <a href="book-appointment.html" class="btn-action btn-primary">📅 Book Appointment</a>
+    <a href="my-bookings.html" class="btn-action btn-outline">📋 My Bookings</a>
+    <a href="my-reports.html" class="btn-action btn-outline">📄 My Reports</a>
+    <a href="my-payments.html" class="btn-action btn-outline">💳 Payments</a>
+  </div>
+
+  <!-- PANELS -->
+  <div class="panel-grid">
+    <!-- Recent Bookings -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">📋 Recent Bookings</span>
+        <a href="my-bookings.html" class="card-link">View all →</a>
+      </div>
+      <div class="card-body" id="bookingsList">
+        <div id="loadingOverlay">Loading…</div>
+      </div>
+    </div>
+
+    <!-- Recent Reports -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">📄 Recent Reports</span>
+        <a href="my-reports.html" class="card-link">View all →</a>
+      </div>
+      <div class="card-body" id="reportsList">
+        <div id="loadingOverlay2">Loading…</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // Load user info from session
+  const userName = sessionStorage.getItem('user_name') || 'Patient';
+  const userRole = sessionStorage.getItem('user_role');
+  if (userRole && userRole !== 'Patient') window.location.href = 'login.html';
+  document.getElementById('navName').textContent   = userName.split(' ')[0];
+  document.getElementById('greetName').textContent = userName.split(' ')[0];
+
+  // Logout
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    await fetch('../api/logout.php', { method: 'POST' });
+    sessionStorage.clear();
+    window.location.href = 'login.html';
+  });
+
+  // Fetch dashboard stats
+  async function loadDashboard() {
+    try {
+      const res  = await fetch('../api/patient-dashboard.php');
+      const data = await res.json();
+      if (!data.success) { window.location.href = 'login.html'; return; }
+
+      document.getElementById('statTotal').textContent     = data.stats.total;
+      document.getElementById('statPending').textContent   = data.stats.pending;
+      document.getElementById('statCompleted').textContent = data.stats.completed;
+      document.getElementById('statReports').textContent   = data.stats.reports;
+
+      renderBookings(data.bookings);
+      renderReports(data.reports);
+    } catch(e) {
+      document.getElementById('bookingsList').innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div>Could not load data.</div>';
+      document.getElementById('reportsList').innerHTML  = '<div class="empty-state"><div class="empty-icon">⚠️</div>Could not load data.</div>';
+    }
+  }
+
+  function badgeClass(status) {
+    return { Pending:'badge-pending', Confirmed:'badge-confirmed', Completed:'badge-completed', Cancelled:'badge-cancelled' }[status] || 'badge-pending';
+  }
+  function reportBadge(status) {
+    return { Ready:'badge-ready', Approved:'badge-approved', Pending:'badge-processing' }[status] || 'badge-processing';
+  }
+
+  function renderBookings(list) {
+    const el = document.getElementById('bookingsList');
+    if (!list || !list.length) {
+      el.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div>No bookings yet.<br><a href="book-appointment.html" style="color:var(--accent);font-weight:600">Book your first appointment →</a></div>';
+      return;
+    }
+    el.innerHTML = list.map(b => `
+      <div class="booking-item">
+        <div class="booking-info">
+          <div class="b-date">${b.booking_date}</div>
+          <div class="b-doc">Dr. ${b.doctor_name}</div>
+          <div class="b-tests">${b.specialization}</div>
+        </div>
+        <span class="badge ${badgeClass(b.booking_status)}">${b.booking_status}</span>
+      </div>`).join('');
+  }
+
+  function renderReports(list) {
+    const el = document.getElementById('reportsList');
+    if (!list || !list.length) {
+      el.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div>No reports available yet.</div>';
+      return;
+    }
+    el.innerHTML = list.map(r => `
+      <div class="report-item">
+        <div class="report-info">
+          <div class="r-name">Report #${r.report_id}</div>
+          <div class="r-date">${r.generated_date}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:.6rem">
+          <span class="badge ${reportBadge(r.report_status)}">${r.report_status}</span>
+          ${r.report_status !== 'Pending' ? `<a href="my-reports.html?id=${r.report_id}" style="font-size:.8rem;color:var(--accent);font-weight:600;text-decoration:none">View</a>` : ''}
+        </div>
+      </div>`).join('');
+  }
+
+  loadDashboard();
+</script>
+</body>
+</html>

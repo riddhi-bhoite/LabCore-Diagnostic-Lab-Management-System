@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>LabCore — Manage Tests</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{--navy:#0d1e35;--blue:#1a3a6b;--accent:#3b82f6;--gold:#f0a500;--gold-lit:#fbbf24;--surface:#f0f4fb;--white:#fff;--muted:#94a3b8;--border:#dde3ef;--ink:#0f172a;--ok:#16a34a;--err:#dc2626;--warn:#d97706}
+    body{font-family:'Sora',sans-serif;background:var(--surface);color:var(--ink);min-height:100vh}
+    nav{background:var(--navy);display:flex;align-items:center;justify-content:space-between;padding:0 2rem;height:62px;position:sticky;top:0;z-index:200;box-shadow:0 2px 16px rgba(0,0,0,.3)}
+    .brand{display:flex;align-items:center;gap:.7rem;text-decoration:none}
+    .brand-mark{width:38px;height:38px;background:linear-gradient(135deg,var(--gold),#f97316);border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:1.15rem}
+    .brand-name{font-family:'Playfair Display',serif;font-size:1.4rem;color:#fff}.brand-name b{color:var(--gold)}
+    .nav-links{display:flex;gap:.2rem}
+    .nav-link{padding:.42rem .85rem;border-radius:8px;color:rgba(255,255,255,.6);font-size:.82rem;font-weight:500;text-decoration:none;transition:all .2s}
+    .nav-link:hover,.nav-link.active{background:rgba(255,255,255,.12);color:#fff}
+    .nav-right{display:flex;align-items:center;gap:.75rem}
+    .admin-badge{background:rgba(240,165,0,.18);border:1px solid rgba(240,165,0,.4);color:var(--gold-lit);font-size:.72rem;font-weight:700;padding:.22rem .7rem;border-radius:50px}
+    .btn-logout{padding:.36rem .85rem;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);color:#fff;border-radius:8px;font-family:'Sora',sans-serif;font-size:.8rem;cursor:pointer;transition:background .2s}
+    .btn-logout:hover{background:rgba(255,255,255,.2)}
+    .main{max-width:1100px;margin:0 auto;padding:2rem 1.5rem}
+    .page-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.8rem;animation:fadeUp .5s ease both}
+    .page-head h1{font-family:'Playfair Display',serif;font-size:1.85rem}
+    .page-head p{color:var(--muted);font-size:.88rem;margin-top:.2rem}
+    .card{background:var(--white);border-radius:18px;box-shadow:0 2px 16px rgba(15,23,42,.07);overflow:hidden;animation:fadeUp .6s ease both .1s}
+    .card-header{padding:1rem 1.5rem;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem}
+    .card-title{font-family:'Playfair Display',serif;font-size:1rem}
+    .search-wrap{position:relative}
+    .search-icon{position:absolute;left:.8rem;top:50%;transform:translateY(-50%);font-size:.9rem;opacity:.4;pointer-events:none}
+    .search-input{padding:.55rem .9rem .55rem 2.4rem;border:1.5px solid var(--border);border-radius:9px;font-family:'Sora',sans-serif;font-size:.85rem;color:var(--ink);background:var(--surface);outline:none;width:220px;transition:all .2s}
+    .search-input:focus{border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+    .btn-add{display:flex;align-items:center;gap:.5rem;padding:.6rem 1.2rem;background:linear-gradient(135deg,var(--blue),var(--accent));color:#fff;border:none;border-radius:10px;font-family:'Sora',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer;transition:all .2s}
+    .btn-add:hover{opacity:.9;transform:translateY(-1px);box-shadow:0 4px 14px rgba(59,130,246,.3)}
+    table{width:100%;border-collapse:collapse}
+    thead{background:#f8fafc}
+    th{padding:.8rem 1.2rem;text-align:left;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);white-space:nowrap}
+    td{padding:.85rem 1.2rem;font-size:.87rem;border-top:1px solid #f1f5f9;vertical-align:middle}
+    tr:hover td{background:#fafbfc}
+    .badge{padding:.22rem .7rem;border-radius:50px;font-size:.7rem;font-weight:700}
+    .cat-badge{background:#ede9fe;color:#5b21b6}
+    .sample-badge{background:#dbeafe;color:#1e40af}
+    .price-tag{font-weight:700;color:var(--ok);font-size:.92rem}
+    .tbl-btn{padding:.28rem .75rem;border-radius:7px;font-size:.76rem;font-weight:600;border:1.5px solid;background:transparent;cursor:pointer;font-family:'Sora',sans-serif;transition:all .2s;margin-right:.3rem}
+    .tbl-btn.edit{border-color:var(--accent);color:var(--accent)}.tbl-btn.edit:hover{background:var(--accent);color:#fff}
+    .tbl-btn.del{border-color:var(--err);color:var(--err)}.tbl-btn.del:hover{background:var(--err);color:#fff}
+    .empty-state{text-align:center;padding:3rem;color:var(--muted)}
+    .empty-state .ei{font-size:2.8rem;margin-bottom:.75rem}
+    .modal-bg{display:none;position:fixed;inset:0;background:rgba(8,15,26,.6);z-index:500;align-items:center;justify-content:center;padding:1rem}
+    .modal-bg.open{display:flex}
+    .modal{background:#fff;border-radius:20px;padding:2rem;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:0 24px 64px rgba(0,0,0,.25);animation:fadeUp .3s ease}
+    .modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
+    .modal-head h3{font-family:'Playfair Display',serif;font-size:1.3rem}
+    .modal-close{background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--muted);line-height:1}
+    .modal-close:hover{color:var(--ink)}
+    .field{margin-bottom:1rem}
+    .field label{display:block;font-size:.77rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#475569;margin-bottom:.4rem}
+    .req{color:var(--err);margin-left:2px}
+    .input-wrap{position:relative}
+    .fi{position:absolute;left:.9rem;top:50%;transform:translateY(-50%);font-size:.95rem;opacity:.38;pointer-events:none}
+    .field input,.field select{width:100%;padding:.78rem .9rem .78rem 2.6rem;border:1.5px solid var(--border);border-radius:10px;font-family:'Sora',sans-serif;font-size:.9rem;color:var(--ink);background:var(--surface);outline:none;appearance:none;transition:all .2s}
+    .field input:focus,.field select:focus{border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px rgba(59,130,246,.1)}
+    .field input::placeholder{color:#b8c4d0}
+    .field select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7' viewBox='0 0 12 7'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2394a3b8' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .9rem center;padding-right:2.4rem}
+    .g2{display:grid;grid-template-columns:1fr 1fr;gap:.9rem}
+    .modal-footer{display:flex;gap:.75rem;margin-top:1.4rem}
+    .btn-cancel{flex:1;padding:.82rem;background:transparent;border:1.5px solid var(--border);border-radius:10px;font-family:'Sora',sans-serif;font-size:.92rem;font-weight:500;color:#475569;cursor:pointer;transition:all .2s}
+    .btn-cancel:hover{border-color:var(--accent);color:var(--accent)}
+    .btn-save{flex:2;padding:.82rem;background:linear-gradient(135deg,var(--blue),var(--accent));color:#fff;border:none;border-radius:10px;font-family:'Sora',sans-serif;font-size:.92rem;font-weight:600;cursor:pointer;transition:all .2s}
+    .btn-save:hover{opacity:.9;transform:translateY(-1px)}
+    .btn-save:disabled{opacity:.6;cursor:not-allowed;transform:none}
+    .spinner{display:none;width:16px;height:16px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto}
+    .btn-save.loading .btn-text{display:none}.btn-save.loading .spinner{display:inline-block}
+    .alert{display:none;padding:.75rem 1rem;border-radius:10px;font-size:.84rem;font-weight:500;margin-bottom:1rem;align-items:center;gap:.5rem}
+    .alert.show{display:flex}
+    .alert-err{background:#fef2f2;border:1px solid #fecaca;color:var(--err)}
+    .toast{position:fixed;bottom:1.5rem;right:1.5rem;background:#1e293b;color:#fff;padding:.85rem 1.3rem;border-radius:12px;font-size:.87rem;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.25);display:none;align-items:center;gap:.6rem;z-index:999}
+    .toast.show{display:flex}.toast.ok{border-left:4px solid var(--ok)}.toast.err{border-left:4px solid var(--err)}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @media(max-width:700px){.nav-links{display:none}.g2{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<nav>
+  <a href="admin-dashboard.html" class="brand"><div class="brand-mark">🧬</div><span class="brand-name">Lab<b>Core</b></span></a>
+  <div class="nav-links">
+    <a href="admin-dashboard.html" class="nav-link">Dashboard</a>
+    <a href="admin-bookings.html" class="nav-link">Bookings</a>
+    <a href="admin-doctors.html" class="nav-link">Doctors</a>
+    <a href="admin-tests.html" class="nav-link active">Tests</a>
+    <a href="admin-patients.html" class="nav-link">Patients</a>
+    <a href="admin-technicians.html" class="nav-link">Lab Staff</a>
+    <a href="admin-reports.html" class="nav-link">Reports</a>
+  </div>
+  <div class="nav-right">
+    <span class="admin-badge">⚙️ Admin</span>
+    <button class="btn-logout" id="logoutBtn">Sign Out</button>
+  </div>
+</nav>
+
+<div class="main">
+  <div class="page-head">
+    <div><h1>🔬 Manage Tests</h1><p>Add, edit or remove lab tests and set pricing.</p></div>
+    <button class="btn-add" onclick="openAdd()">+ Add Test</button>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">All Tests</span>
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input class="search-input" type="text" id="searchInput" placeholder="Search tests…" oninput="filterTable()"/>
+      </div>
+    </div>
+    <table>
+      <thead><tr><th>Test Name</th><th>Category</th><th>Sample Type</th><th>Price</th><th>Normal Range</th><th>Actions</th></tr></thead>
+      <tbody id="testsTbody"><tr><td colspan="6" class="empty-state"><div class="ei">⏳</div>Loading…</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="testModal">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modalTitle">Add New Test</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="alert alert-err" id="modalErr"><span>⚠️</span><span id="modalErrMsg"></span></div>
+    <input type="hidden" id="editTestId"/>
+
+    <div class="field"><label>Test Name <span class="req">*</span></label><div class="input-wrap"><span class="fi">🧪</span><input type="text" id="fName" placeholder="e.g. Complete Blood Count"/></div></div>
+    <div class="g2">
+      <div class="field"><label>Category <span class="req">*</span></label><div class="input-wrap"><span class="fi">📂</span>
+        <select id="fCat">
+          <option value="">Select category</option>
+          <option>Haematology</option><option>Biochemistry</option><option>Microbiology</option>
+          <option>Immunology</option><option>Pathology</option><option>Radiology</option><option>Other</option>
+        </select>
+      </div></div>
+      <div class="field"><label>Sample Type <span class="req">*</span></label><div class="input-wrap"><span class="fi">🩸</span>
+        <select id="fSample">
+          <option value="">Select sample</option>
+          <option>Blood</option><option>Urine</option><option>Stool</option>
+          <option>Swab</option><option>Tissue</option><option>Sputum</option><option>Other</option>
+        </select>
+      </div></div>
+    </div>
+    <div class="g2">
+      <div class="field"><label>Price (₹) <span class="req">*</span></label><div class="input-wrap"><span class="fi">💰</span><input type="number" id="fPrice" placeholder="e.g. 350" min="0" step="0.01"/></div></div>
+      <div class="field"><label>Normal Range</label><div class="input-wrap"><span class="fi">📊</span><input type="text" id="fRange" placeholder="e.g. 70–110 mg/dL"/></div></div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-save" id="saveBtn" onclick="saveTest()">
+        <span class="btn-text">Save Test</span><div class="spinner"></div>
+      </button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+  let allTests=[], editMode=false;
+
+  document.getElementById('logoutBtn').addEventListener('click',async()=>{await fetch('../api/logout.php',{method:'POST'});sessionStorage.clear();window.location.href='login.html'});
+
+  function showToast(msg,type='ok'){const t=document.getElementById('toast');t.textContent=(type==='ok'?'✅ ':'❌ ')+msg;t.className=`toast show ${type}`;setTimeout(()=>t.classList.remove('show'),3000)}
+
+  function openAdd(){editMode=false;document.getElementById('modalTitle').textContent='Add New Test';document.getElementById('editTestId').value='';['fName','fPrice','fRange'].forEach(id=>document.getElementById(id).value='');document.getElementById('fCat').value='';document.getElementById('fSample').value='';document.getElementById('modalErr').classList.remove('show');document.getElementById('testModal').classList.add('open')}
+
+  function openEdit(t){editMode=true;document.getElementById('modalTitle').textContent='Edit Test';document.getElementById('editTestId').value=t.test_id;document.getElementById('fName').value=t.test_name;document.getElementById('fCat').value=t.test_category;document.getElementById('fSample').value=t.sample_type;document.getElementById('fPrice').value=t.test_price;document.getElementById('fRange').value=t.normal_range||'';document.getElementById('modalErr').classList.remove('show');document.getElementById('testModal').classList.add('open')}
+
+  function closeModal(){document.getElementById('testModal').classList.remove('open')}
+
+  async function saveTest(){
+    const btn=document.getElementById('saveBtn');
+    const payload={test_id:document.getElementById('editTestId').value,test_name:document.getElementById('fName').value.trim(),test_category:document.getElementById('fCat').value,sample_type:document.getElementById('fSample').value,test_price:document.getElementById('fPrice').value,normal_range:document.getElementById('fRange').value.trim(),edit_mode:editMode};
+    const errMsg=document.getElementById('modalErrMsg'),errBox=document.getElementById('modalErr');
+    if(!payload.test_name||!payload.test_category||!payload.sample_type||!payload.test_price){errMsg.textContent='Fill all required fields.';errBox.classList.add('show');return}
+    btn.classList.add('loading');btn.disabled=true;
+    try{const res=await fetch('../api/admin-save-test.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});const data=await res.json();
+    if(data.success){closeModal();showToast(editMode?'Test updated!':'Test added!');loadTests()}else{errMsg.textContent=data.message||'Save failed.';errBox.classList.add('show')}}
+    catch(e){errMsg.textContent='Network error.';errBox.classList.add('show')}
+    finally{btn.classList.remove('loading');btn.disabled=false}
+  }
+
+  async function deleteTest(id,name){
+    if(!confirm(`Delete test "${name}"?`))return;
+    const res=await fetch('../api/admin-delete-test.php',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({test_id:id})});
+    const data=await res.json();
+    if(data.success){showToast('Test deleted.');loadTests()}else showToast(data.message||'Delete failed.','err')
+  }
+
+  function filterTable(){const q=document.getElementById('searchInput').value.toLowerCase();renderTable(allTests.filter(t=>t.test_name.toLowerCase().includes(q)||t.test_category.toLowerCase().includes(q)||t.sample_type.toLowerCase().includes(q)))}
+
+  function renderTable(list){
+    const tbody=document.getElementById('testsTbody');
+    if(!list.length){tbody.innerHTML=`<tr><td colspan="6"><div class="empty-state"><div class="ei">🔬</div>No tests found.</div></td></tr>`;return}
+    tbody.innerHTML=list.map(t=>`
+      <tr>
+        <td><strong>${t.test_name}</strong></td>
+        <td><span class="badge cat-badge">${t.test_category}</span></td>
+        <td><span class="badge sample-badge">${t.sample_type}</span></td>
+        <td><span class="price-tag">₹${parseFloat(t.test_price).toFixed(2)}</span></td>
+        <td style="color:var(--muted);font-size:.82rem">${t.normal_range||'—'}</td>
+        <td>
+          <button class="tbl-btn edit" onclick='openEdit(${JSON.stringify(t).replace(/'/g,"&#39;")})'>Edit</button>
+          <button class="tbl-btn del" onclick="deleteTest(${t.test_id},'${t.test_name.replace(/'/g,"\\'")}')">Delete</button>
+        </td>
+      </tr>`).join('')
+  }
+
+  async function loadTests(){
+    try{const res=await fetch('../api/admin-get-tests.php');const data=await res.json();
+    if(!data.success){window.location.href='login.html';return}allTests=data.tests;renderTable(allTests)}
+    catch(e){document.getElementById('testsTbody').innerHTML=`<tr><td colspan="6" class="empty-state">Failed to load.</td></tr>`}
+  }
+  loadTests();
+</script>
+</body>
+</html>
